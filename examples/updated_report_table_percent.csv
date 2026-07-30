@@ -1,0 +1,6 @@
+Model,Features,Accuracy (%),F1-score (%)
+Full ROCKET,20000,80.25,80.58
+DETACH-ROCKET,789,81.48,81.53
+Random Pruning,789,79.07,79.03
+SelectKBest,789,80.62,80.92
+Raw Ridge,500,48.89,47.06

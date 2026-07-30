@@ -1,0 +1,2 @@
+model,num_features,accuracy,f1_score,feature_reduction_percent
+Clean DETACH-ROCKET,789,0.8148148148148148,0.8152709359605911,96.055

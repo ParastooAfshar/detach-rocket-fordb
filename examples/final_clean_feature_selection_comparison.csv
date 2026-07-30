@@ -1,0 +1,4 @@
+Method,Features,Accuracy (%),F1-score (%)
+DETACH-ROCKET,789,81.48,81.53
+SelectKBest,789,80.62,80.92
+Random Pruning,789,78.91,78.85

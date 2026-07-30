@@ -1,0 +1,3 @@
+Comparison,Accuracy improvement (percentage points),F1 improvement (percentage points)
+DETACH vs SelectKBest,0.86,0.6
+DETACH vs Random Pruning,2.57,2.68

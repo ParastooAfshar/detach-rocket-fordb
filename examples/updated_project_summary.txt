@@ -1,0 +1,32 @@
+
+Updated FordB Project Summary
+
+Full ROCKET:
+- Features: 20000
+- Accuracy: 80.25%
+- F1-score: 80.58%
+
+Clean DETACH-ROCKET:
+- Features: 789
+- Accuracy: 81.48%
+- F1-score: 81.53%
+- Feature reduction: 96.06%
+
+Random Pruning:
+- Features: 789
+- Mean Accuracy: 79.07%
+- Mean F1-score: 79.03%
+
+SelectKBest:
+- Features: 789
+- Accuracy: 80.62%
+- F1-score: 80.92%
+
+Raw Ridge:
+- Features: 500
+- Accuracy: 48.89%
+- F1-score: 47.06%
+
+DETACH advantage over SelectKBest:
+- Accuracy: 0.86 percentage points
+- F1-score: 0.60 percentage points

@@ -1,0 +1,2 @@
+model,num_features,accuracy,f1_score,alpha
+SelectKBest,789,0.8061728395061728,0.8092345078979344,215.44346900318823
