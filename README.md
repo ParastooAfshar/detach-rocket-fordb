@@ -257,6 +257,20 @@ The test set was not used for fitting the scaler, selecting features, or choosin
 
 ---
 
+## License and Attribution
+
+This project includes and modifies code from the official
+[Detach-ROCKET repository](https://github.com/gon-uri/detach_rocket),
+which is distributed under the BSD 3-Clause License.
+
+The original Detach-ROCKET implementation is credited to its authors.
+The FordB experiments, leakage-free evaluation pipeline, additional
+baselines, result tables, and figures were added in this project.
+
+See the `LICENSE` file for the full license text.
+
+---
+
 ## References
 
 1. Dempster, A., Petitjean, F., and Webb, G. I.  
