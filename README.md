@@ -233,8 +233,6 @@ examples/Detach_ROCKET_example_UCR.ipynb
 - `examples/environment_versions.txt`
 - `examples/requirements.txt`
 
-Some earlier exploratory files may remain in the local project directory, but the files listed above contain the final leakage-free results used in the report and presentation.
-
 ---
 
 ## Reproducibility
