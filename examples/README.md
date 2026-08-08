@@ -15,12 +15,12 @@ The project evaluates five approaches:
 1. Full ROCKET using all 20,000 transformed features
 2. DETACH-ROCKET feature selection
 3. SelectKBest with the same feature budget as DETACH
-4. Random feature pruning with the same feature budget as DETACH
+4. Random Pruning with the same feature budget as DETACH
 5. RidgeClassifierCV applied directly to the raw time-series samples
 
-The main controlled feature-selection comparison uses the same sub-training
-partition, validation partition, fitted scaler, test set, and feature budget
-for DETACH, SelectKBest, and Random Pruning.
+The main controlled feature-selection comparison is between DETACH,
+SelectKBest, and Random Pruning. These methods use the same feature budget
+and the same leakage-free preprocessing protocol.
 
 ---
 
@@ -37,9 +37,9 @@ FordB is a binary time-series classification dataset from the UCR archive.
 Class distribution:
 
 | Partition | Class -1 | Class +1 |
-|---|---:|---:|
-| Train | 1,860 | 1,776 |
-| Test | 401 | 409 |
+| --------- | -------: | -------: |
+| Train     |    1,860 |    1,776 |
+| Test      |      401 |      409 |
 
 The two classes are approximately balanced.
 
@@ -61,22 +61,37 @@ Transformation dimensions:
 - Training set: 3,636 × 500 → 3,636 × 20,000
 - Test set: 810 × 500 → 810 × 20,000
 
+The final ROCKET transformation uses:
+
+```python
+Rocket(
+    num_kernels=10_000,
+    random_state=42
+)
+```
+
 ---
 
 ## Leakage-Free Experimental Pipeline
 
-The final experiment uses a leakage-free preprocessing pipeline:
+The final experiment follows a leakage-free preprocessing protocol:
 
-1. Load the original FordB train and test partitions.
+1. Load the original FordB training and test partitions.
 2. Generate 20,000 ROCKET features.
-3. Split the ROCKET training features into stratified sub-training and validation partitions.
+3. Split the ROCKET training features into stratified sub-training and
+   validation partitions.
 4. Fit `StandardScaler` only on the sub-training partition.
 5. Transform the validation and test partitions using the fitted scaler.
-6. Run DETACH using the sub-training and validation partitions.
-7. Fit SelectKBest only on the same sub-training partition.
-8. Run Random Pruning using the same 789-feature budget.
-9. Evaluate the final models on the independent test set.
-10. Use the test set only for final evaluation.
+6. Perform feature selection using only the training-side data.
+7. Evaluate the selected models on the independent test set.
+8. Use the test set only for final evaluation.
+
+The final stratified split uses:
+
+```python
+test_size=0.2
+random_state=42
+```
 
 Final split dimensions:
 
@@ -84,13 +99,14 @@ Final split dimensions:
 - Validation: 728 × 20,000
 - Test: 810 × 20,000
 
-After correcting the scaling order, the DETACH result remained unchanged.
+After correcting the scaling order, the reported DETACH test result remained
+unchanged.
 
 ---
 
 ## DETACH Configuration
 
-The final DETACH model was configured as follows:
+The reported final DETACH experiment used:
 
 ```python
 DetachMatrix(
@@ -100,9 +116,9 @@ DetachMatrix(
 )
 ```
 
-DETACH sequentially removes low-importance features based on the absolute
-coefficients of a Ridge classifier. Validation performance is used to select
-the final model size.
+DETACH sequentially removes low-importance features based on the magnitude
+of Ridge classifier coefficients and uses validation performance to determine
+a compact feature representation.
 
 ---
 
@@ -110,43 +126,47 @@ the final model size.
 
 ### Overall Model Summary
 
-| Method | Features | Accuracy | F1-score |
-|---|---:|---:|---:|
-| Full ROCKET | 20,000 | 80.25% | 80.58% |
-| DETACH-ROCKET | 789 | **81.48%** | **81.53%** |
-| SelectKBest | 789 | 80.62% | 80.92% |
-| Random Pruning | 789 | 78.91% ± 1.01% | 78.85% ± 0.95% |
-| Raw Ridge | 500 | 48.89% | 47.06% |
+| Method         | Features |       Accuracy |       F1-score |
+| -------------- | -------: | -------------: | -------------: |
+| Full ROCKET    |   20,000 |         80.25% |         80.58% |
+| DETACH-ROCKET  |      789 |     **81.48%** |     **81.53%** |
+| SelectKBest    |      789 |         80.62% |         80.92% |
+| Random Pruning |      789 | 78.91% ± 1.01% | 78.85% ± 0.95% |
+| Raw Ridge      |      500 |         48.89% |         47.06% |
 
 Random Pruning results are reported as mean ± standard deviation over
 10 independent random seeds.
+
+The Full ROCKET result is included as a reference baseline. Its comparison
+with DETACH is descriptive rather than a fully controlled equal-budget
+feature-selection comparison.
 
 ---
 
 ## Controlled Feature-Selection Comparison
 
-DETACH, SelectKBest, and Random Pruning were compared under the same
-experimental conditions and with exactly 789 selected features.
+DETACH, SelectKBest, and Random Pruning were compared using the same
+789-feature budget and the same clean preprocessing protocol.
 
-| Method | Features | Accuracy | F1-score |
-|---|---:|---:|---:|
-| DETACH-ROCKET | 789 | **81.48%** | **81.53%** |
-| SelectKBest | 789 | 80.62% | 80.92% |
-| Random Pruning | 789 | 78.91% | 78.85% |
+| Method         | Features |       Accuracy |       F1-score |
+| -------------- | -------: | -------------: | -------------: |
+| DETACH-ROCKET  |      789 |     **81.48%** |     **81.53%** |
+| SelectKBest    |      789 |         80.62% |         80.92% |
+| Random Pruning |      789 | 78.91% ± 1.01% | 78.85% ± 0.95% |
 
-DETACH improvement over SelectKBest:
+Observed DETACH improvement over SelectKBest:
 
 - Accuracy: +0.86 percentage points
 - F1-score: +0.60 percentage points
 
-DETACH improvement over Random Pruning:
+Observed DETACH improvement over Random Pruning:
 
 - Accuracy: +2.57 percentage points
 - F1-score: +2.68 percentage points
 
-Because the three methods used the same feature budget and preprocessing
-pipeline, the results provide a controlled comparison of the selected
-feature subsets.
+These values describe the observed test-set differences under the current
+experimental configuration. No statistical significance test was performed
+for the DETACH-versus-SelectKBest comparison.
 
 ---
 
@@ -161,11 +181,13 @@ DETACH reduced the ROCKET feature space from 20,000 to 789 features.
 - Feature reduction: 96.055%
 - Compression ratio: 25.35×
 
-The final representation was approximately 25.35 times smaller than the
+The selected representation was approximately 25.35 times smaller than the
 original ROCKET representation.
 
-Test accuracy increased numerically from 80.25% for Full ROCKET to 81.48%
-for DETACH-ROCKET.
+In the reported experiments, test accuracy was 80.25% for Full ROCKET and
+81.48% for DETACH-ROCKET. Because these two configurations do not constitute
+the main controlled equal-budget comparison, this difference should be
+interpreted descriptively.
 
 ---
 
@@ -173,46 +195,121 @@ for DETACH-ROCKET.
 
 The results support four main observations:
 
-1. ROCKET feature extraction is essential for FordB. Ridge classification
-   on the raw 500-point signals achieved only 48.89% accuracy.
+1. In the linear Ridge classification pipeline studied here, the ROCKET
+   representation was important for achieving strong FordB performance.
+   Ridge classification directly on the raw 500-point signals achieved
+   48.89% accuracy.
 
-2. The 20,000-dimensional ROCKET representation contains substantial
-   redundancy for this dataset.
+2. For FordB and the configuration evaluated here, more than 96% of the
+   20,000 ROCKET features could be removed while maintaining the observed
+   test performance.
 
-3. Randomly retaining 789 features did not reproduce DETACH performance.
+3. Randomly retaining 789 ROCKET features did not reproduce the observed
+   DETACH performance.
 
 4. Under the controlled 789-feature comparison, DETACH achieved higher
-   Accuracy and F1-score than both SelectKBest and Random Pruning.
+   observed Accuracy and F1-score than SelectKBest and Random Pruning.
 
 ---
 
 ## Extensions Added in This Project
 
-Beyond reproducing the core DETACH-ROCKET pipeline, this project adds:
+Beyond reproducing the core DETACH-ROCKET workflow, this project adds:
 
 - F1-score evaluation
 - Ridge classification on the raw time-series values
 - SelectKBest with the same 789-feature budget
-- Clean Random Pruning over 10 independent seeds
+- Random Pruning evaluated over 10 independent seeds
 - Leakage-free scaling
-- A controlled equal-budget feature-selection comparison
+- Controlled equal-budget feature-selection comparison
 - Feature-compression analysis
 - Reproducible CSV result tables
 - Updated performance and feature-count figures
-- Explicit separation between the original paper and the project extensions
+- Explicit separation between the original paper results and project
+  extensions
+- Reusable Python utilities in `src/`
+- Automated unit tests in `tests/`
+
+---
+
+## Project Structure
+
+```text
+detach-rocket-fordb/
+│
+├── detach_rocket/
+│   └── Original DETACH-ROCKET implementation
+│
+├── examples/
+│   ├── Detach_ROCKET_example_UCR.ipynb
+│   ├── requirements.txt
+│   ├── CSV result files
+│   └── result figures
+│
+├── src/
+│   └── pipeline.py
+│
+├── tests/
+│   └── test_pipeline.py
+│
+├── README.md
+├── LICENSE
+└── setup.py
+```
+
+`src/pipeline.py` contains reusable utilities for:
+
+- loading FordB
+- stratified train-validation splitting
+- leakage-safe scaling
+- prediction evaluation
+
+The notebook remains the main experimental workflow, while reusable
+preprocessing and evaluation logic is progressively separated into Python
+modules.
 
 ---
 
 ## Installation
 
+The project was developed using:
+
+```text
+Python 3.10.11
+```
+
 Create and activate a Python virtual environment, then install the required
 packages:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r examples/requirements.txt
 ```
 
-The experiments were developed using Python 3.10.
+The main dependencies are pinned to the versions used in the project to
+improve reproducibility.
+
+---
+
+## Running the Tests
+
+The project includes unit tests for the reusable pipeline utilities.
+
+Run:
+
+```bash
+python -m pytest
+```
+
+The current test suite checks:
+
+- leakage-safe scaler fitting
+- stratified train-validation splitting
+- exclusion of held-out data from scaler fitting
+- prediction evaluation
+- FordB dataset loading
+
+These are lightweight unit tests for the reusable utilities and are not a
+replacement for rerunning the complete experimental notebook.
 
 ---
 
@@ -254,30 +351,62 @@ examples/Detach_ROCKET_example_UCR.ipynb
 - `environment_versions.txt`
 - `requirements.txt`
 
-Some earlier exploratory files may remain in the project directory, but the
-files listed above contain the final leakage-free results used in the report
-and presentation.
+These output files are located under the `examples/` directory where
+applicable.
+
+Some earlier exploratory files may remain in the project directory. The
+files listed above correspond to the final results used in the report and
+presentation.
 
 ---
 
 ## Reproducibility
 
-Fixed random seeds were used for:
+The following reproducibility controls are explicitly used in the final
+workflow:
 
-- Training-validation splitting
-- Random feature selection
-- ROCKET kernel generation in repeated exploratory experiments
+- ROCKET kernel generation: `random_state=42`
+- Stratified training-validation split: `random_state=42`
+- Single-run random feature selection: NumPy random generator seed `42`
+- Random Pruning repeated evaluation: seeds `0` through `9`
 
-The final clean split used stratification and `random_state=42`.
-
-Random Pruning was evaluated using 10 independent seeds:
+Random Pruning seeds:
 
 ```text
 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
 ```
 
-The test set was not used for fitting the scaler, selecting features, or
-choosing the final DETACH model size.
+Package versions are pinned in:
+
+```text
+examples/requirements.txt
+```
+
+The test set is reserved for final evaluation and is not used for fitting
+the scaler or performing feature selection.
+
+A final explicit random seed for the internal DETACH implementation is not
+documented here because it was not independently verified from the current
+notebook version.
+
+---
+
+## Current Limitations
+
+The current project has several limitations that should be considered when
+interpreting the results:
+
+- The final analysis focuses on a single UCR dataset, FordB.
+- DETACH and SelectKBest final results are reported as point estimates in the
+  main comparison.
+- Random Pruning was repeated over 10 seeds, but an equivalent multi-seed
+  analysis has not yet been completed for all feature-selection methods.
+- No formal statistical significance test was performed for the observed
+  difference between DETACH and SelectKBest.
+- The Full ROCKET and DETACH results should not be interpreted as a fully
+  controlled equal-budget comparison.
+- The number of selected DETACH features can depend on the experimental
+  configuration.
 
 ---
 
@@ -286,14 +415,14 @@ choosing the final DETACH model size.
 DETACH-ROCKET reduced the FordB ROCKET feature space from 20,000 to 789
 features, corresponding to a 96.055% reduction and a 25.35-fold compression.
 
-The final DETACH model achieved:
+The reported DETACH model achieved:
 
 - 81.48% Accuracy
 - 81.53% F1-score
 
-In the controlled comparison with the same 789-feature budget, DETACH
-outperformed both SelectKBest and Random Pruning on the FordB test set.
+In the controlled 789-feature comparison, DETACH achieved higher observed
+test scores than SelectKBest and Random Pruning.
 
-These results show that targeted feature selection can produce a substantially
-more compact ROCKET representation without sacrificing classification
-performance on FordB.
+For FordB and the experimental configuration evaluated here, targeted
+feature selection produced a substantially more compact ROCKET
+representation while maintaining the observed classification performance.
