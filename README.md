@@ -332,7 +332,13 @@ Install the pinned core dependencies from the project root:
 ```bash
 python -m pip install -r examples/requirements.txt
 ```
+## Computational Requirements
 
+ROCKET generates 20,000 features per sample in the current configuration, and the multi-seed experiments repeat this transformation for several random kernel realizations. As a result, the full experimental workflow can require substantial memory and computation time.
+
+Exact runtime and hardware benchmarks are not reported because the experiments were not executed under a controlled benchmarking setup. Runtime can vary substantially depending on CPU performance, available memory, parallelism, and software environment.
+
+Users with limited computational resources may run the main single-seed experiment first before reproducing the complete multi-seed analysis.
 ---
 
 ## Tests
