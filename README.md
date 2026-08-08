@@ -288,10 +288,13 @@ Beyond reproducing the core DETACH-ROCKET workflow, this project adds:
 - matched-budget DETACH–SelectKBest evaluation
 - paired statistical testing
 - feature-compression analysis
-- reusable preprocessing and evaluation functions
+- reusable preprocessing and evaluation utilities
 - lightweight unit tests
 - pinned core dependencies
 - reproducible CSV result files
+- a command-line entry point for smoke testing and baseline execution
+- continuous integration with GitHub Actions
+- explicit documentation of changes relative to the upstream repository
 
 ---
 
@@ -300,8 +303,16 @@ Beyond reproducing the core DETACH-ROCKET workflow, this project adds:
 ```text
 detach-rocket-fordb/
 │
-├── README.md
+├── .github/
+│   └── workflows/
+│       └── tests.yml
+│
+├── CHANGES.md
 ├── LICENSE
+├── README.md
+├── requirements.txt
+├── run_experiment.py
+├── setup.py
 │
 ├── src/
 │   └── pipeline.py
@@ -330,15 +341,21 @@ The experiments were run using **Python 3.10.11**.
 Install the pinned core dependencies from the project root:
 
 ```bash
-python -m pip install -r examples/requirements.txt
+python -m pip install -r requirements.txt
 ```
+
+The root-level `requirements.txt` contains the dependencies required for the project environment.
+
+---
+
 ## Computational Requirements
 
 ROCKET generates 20,000 features per sample in the current configuration, and the multi-seed experiments repeat this transformation for several random kernel realizations. As a result, the full experimental workflow can require substantial memory and computation time.
 
 Exact runtime and hardware benchmarks are not reported because the experiments were not executed under a controlled benchmarking setup. Runtime can vary substantially depending on CPU performance, available memory, parallelism, and software environment.
 
-Users with limited computational resources may run the main single-seed experiment first before reproducing the complete multi-seed analysis.
+Users with limited computational resources may run the lightweight smoke test or the main single-seed experiment before attempting the complete multi-seed analysis.
+
 ---
 
 ## Tests
@@ -357,15 +374,45 @@ The current lightweight test suite covers:
 - held-out test data not being used to fit the scaler
 - Accuracy and F1-score evaluation utilities
 
+The tests are also executed automatically through GitHub Actions on pushes and pull requests to the `main` branch.
+
 ---
 
 ## Main Notebook
 
-The main experimental notebook is:
+The complete experimental analysis, including DETACH and the multi-seed matched-budget experiments, is available in:
 
 ```text
 examples/Detach_ROCKET_example_UCR.ipynb
 ```
+
+---
+
+## Command-Line Entry Point
+
+A command-line entry point is provided at:
+
+```text
+run_experiment.py
+```
+
+For a lightweight smoke test:
+
+```bash
+python run_experiment.py
+```
+
+This loads the FordB dataset and verifies the expected training and test shapes without running the computationally expensive ROCKET transformation.
+
+To run the ROCKET + SelectKBest baseline:
+
+```bash
+python run_experiment.py --full
+```
+
+The `--full` option performs the 10,000-kernel ROCKET transformation, applies the leakage-free preprocessing pipeline, selects 789 features with SelectKBest, trains the Ridge classifier, and reports the resulting Accuracy and F1-score.
+
+The complete DETACH and multi-seed analyses remain available in the main experimental notebook.
 
 ---
 
@@ -389,6 +436,8 @@ examples/clean_random_pruning_10_runs.csv
 examples/final_clean_feature_selection_comparison.csv
 examples/detach_compression_analysis.csv
 ```
+
+These files are retained as reproducible result artifacts associated with the reported experiments.
 
 ---
 
@@ -415,7 +464,25 @@ Random Pruning was evaluated using:
 
 The independent FordB test partition is not used to fit the scaler or select features.
 
+Core dependency versions are pinned in the root-level `requirements.txt`.
+
 An explicit internal DETACH random seed was not independently verified in the final implementation. Therefore, claims regarding DETACH's internal deterministic behavior are kept limited.
+
+---
+
+## Upstream Code and Project Changes
+
+The `detach_rocket/` directory is based on the original DETACH-ROCKET implementation by Gonzalo Uribarri and Federico Barone.
+
+The primary contributions in this repository concern the FordB experimental workflow, leakage-free evaluation, additional baselines, multi-seed matched-budget analysis, statistical evaluation, testing, reproducibility, and project-level tooling.
+
+A detailed summary of the changes relative to the upstream repository is provided in:
+
+```text
+CHANGES.md
+```
+
+This repository does not claim to provide a redesigned implementation of the core DETACH algorithm.
 
 ---
 
@@ -430,6 +497,8 @@ The current project has several limitations:
 - Random Pruning was evaluated over 10 random seeds, whereas the matched-budget DETACH–SelectKBest experiment uses five ROCKET seeds.
 - Full ROCKET and DETACH use different feature counts; therefore, their direct performance comparison is descriptive rather than equal-budget.
 - In contrast, the DETACH–SelectKBest comparisons described as equal-budget or matched-budget explicitly use the same feature count within each comparison.
+- The command-line entry point currently reproduces the ROCKET + SelectKBest baseline rather than the complete DETACH and multi-seed workflow.
+- The lightweight unit tests cover core preprocessing and evaluation utilities but do not execute the full computationally expensive experimental pipeline.
 - The findings are specific to FordB and should not be generalized to other time-series datasets without additional experiments.
 - A broader multi-dataset benchmark has not yet been performed.
 
@@ -445,7 +514,7 @@ The original DETACH-ROCKET implementation is credited to its authors.
 
 The FordB experiments, additional baselines, leakage-free evaluation,
 multi-seed matched-budget comparison, statistical analysis, tests,
-and result files were added in this project.
+command-line tooling, CI configuration, and result files were added in this project.
 
 See the `LICENSE` file for the full license text.
 
