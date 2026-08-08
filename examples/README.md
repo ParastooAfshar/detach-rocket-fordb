@@ -396,17 +396,23 @@ notebook version.
 The current project has several limitations that should be considered when
 interpreting the results:
 
-- The final analysis focuses on a single UCR dataset, FordB.
-- DETACH and SelectKBest final results are reported as point estimates in the
-  main comparison.
-- Random Pruning was repeated over 10 seeds, but an equivalent multi-seed
-  analysis has not yet been completed for all feature-selection methods.
-- No formal statistical significance test was performed for the observed
-  difference between DETACH and SelectKBest.
+- The analysis focuses on a single UCR dataset, FordB.
+- The multi-seed comparison currently uses five ROCKET random seeds, which is
+  still a relatively small sample for statistical inference.
+- In the matched-budget multi-seed analysis, DETACH selected a different number
+  of features for each ROCKET seed, indicating that the selected feature count
+  is sensitive to the experimental configuration.
+- DETACH achieved higher observed Accuracy and F1-score than matched-budget
+  SelectKBest across all five paired ROCKET seeds. The paired t-test indicated
+  statistically significant differences for Accuracy (p = 0.015) and F1-score
+  (p = 0.023). However, these results should be interpreted cautiously because
+  of the small number of seeds.
+- Random Pruning was evaluated over 10 seeds, whereas the matched-budget
+  DETACH–SelectKBest comparison currently uses five seeds.
 - The Full ROCKET and DETACH results should not be interpreted as a fully
   controlled equal-budget comparison.
-- The number of selected DETACH features can depend on the experimental
-  configuration.
+- The conclusions are specific to the FordB dataset and should not be
+  generalized to other time-series datasets without further evaluation.
 
 ---
 
